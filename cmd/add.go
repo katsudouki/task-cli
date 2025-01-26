@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"task-cli/data"
 
 	"github.com/spf13/cobra"
@@ -13,8 +14,8 @@ var addCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		priority := args[0]
-		description := args[1]
-		id, err := data.AddTask(priority,description)
+		description := strings.Join(args[1:], " ")
+		id, err := data.AddTask(priority, description)
 		if err != nil {
 			fmt.Println("Error on create new task:", err)
 			return
