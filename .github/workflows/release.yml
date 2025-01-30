@@ -3,7 +3,7 @@ name: Build Go Application
 on:
   push:
     tags:
-      - '*' 
+      - '*'
 
 jobs:
   build:
@@ -34,6 +34,14 @@ jobs:
         run: |
           GOOS=linux GOARCH=amd64 go build -o $REPO_NAME-linux-x86-64 .
 
+      - name: Build for windows-x86
+        run: |
+          GOOS=windows GOARCH=386 go build -o $REPO_NAME-windows-x86.exe .
+
+      - name: Build for windows-x86-64
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o $REPO_NAME-windows-x86-64.exe .
+
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -41,21 +49,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.TAG_NAME }}
-          release_name: ${{ env.TAG_NAME }} 
-          body: "Release de compilação para Linux."
+          release_name: ${{ env.TAG_NAME }}
+          body: "Release new version."
           draft: false
           prerelease: false
 
-      - name: Upload 32-bit binary to GitHub Release
+      - name: Upload Linux 32-bit binary to GitHub Release
         run: |
           curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/octet-stream" \
           --data-binary @./$REPO_NAME-linux-x86 \
           "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets?name=$REPO_NAME-linux-x86"
 
-      - name: Upload 64-bit binary to GitHub Release
+      - name: Upload Linux 64-bit binary to GitHub Release
         run: |
           curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/octet-stream" \
           --data-binary @./$REPO_NAME-linux-x86-64 \
           "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets?name=$REPO_NAME-linux-x86-64"
+
+      - name: Upload Windows 32-bit binary to GitHub Release
+        run: |
+          curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Content-Type: application/octet-stream" \
+          --data-binary @./$REPO_NAME-windows-x86.exe \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets?name=$REPO_NAME-windows-x86.exe"
+
+      - name: Upload Windows 64-bit binary to GitHub Release
+        run: |
+          curl -XPOST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Content-Type: application/octet-stream" \
+          --data-binary @./$REPO_NAME-windows-x86-64.exe \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets?name=$REPO_NAME-windows-x86-64.exe"

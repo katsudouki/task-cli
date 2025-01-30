@@ -6,16 +6,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+
+	"github.com/fatih/color"
 )
 
-   const (
-        Reset  = "\033[0m" 
-        Red    = "\033[31m"
-	    Green  = "\033[32m"  
-        Yellow = "\033[33m"  
-        Blue   = "\033[34m"  
-	    Magenta= "\033[35m"
-    )
+var (
+	Green   = color.New(color.FgGreen).SprintFunc()
+	Red     = color.New(color.FgRed).SprintFunc()
+	Yellow  = color.New(color.FgYellow).SprintFunc()
+	Blue    = color.New(color.FgBlue).SprintFunc()
+	Magenta = color.New(color.FgMagenta).SprintFunc()
+	Reset   = color.New(color.Reset).SprintFunc()
+)
 
 type Task struct {
 	ID          int    `json:"id"`
@@ -27,14 +30,19 @@ type Task struct {
 var configDir string
 
 func init() {
-	homeDir, _ := os.UserHomeDir()
-	configDir = filepath.Join(homeDir, ".config", "todos")
+	if runtime.GOOS == "windows" {
+		appData, _ := os.UserConfigDir()
+		configDir = filepath.Join(appData, "task-cli", "todos")
+	} else {
+		homeDir, _ := os.UserHomeDir()
+		configDir = filepath.Join(homeDir, ".config", "todos")
+	}
 	_ = os.MkdirAll(configDir, 0755)
 }
 
-func AddTask(priority string,description string) (int, error) {
+func AddTask(priority string, description string) (int, error) {
 	id := generateID()
-	task := Task{ID: id, Priority: priority,Description: description, Status: "todo"}
+	task := Task{ID: id, Priority: priority, Description: description, Status: "todo"}
 	filePath := filepath.Join(configDir, fmt.Sprintf("%d.json", id))
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -45,12 +53,12 @@ func AddTask(priority string,description string) (int, error) {
 	return id, nil
 }
 
-func UpdateTask(id int, newPriority string,newDescription string) error {
+func UpdateTask(id int, newPriority string, newDescription string) error {
 	task, err := getTask(id)
 	if err != nil {
 		return err
 	}
-	task.Priority= newPriority
+	task.Priority = newPriority
 	task.Description = newDescription
 	return saveTask(task)
 }
@@ -74,6 +82,7 @@ func ListTasks(status string) ([]Task, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var tasks []Task
 	for _, file := range files {
 		var task Task
@@ -92,6 +101,7 @@ func getTask(id int) (*Task, error) {
 	if err != nil {
 		return nil, errors.New("Tarefa não encontrada")
 	}
+
 	var task Task
 	json.Unmarshal(data, &task)
 	return &task, nil

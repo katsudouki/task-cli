@@ -4,7 +4,17 @@ import (
 	"fmt"
 	"task-cli/data"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+)
+
+var (
+	Green   = color.New(color.FgGreen).SprintFunc()
+	Red     = color.New(color.FgRed).SprintFunc()
+	Yellow  = color.New(color.FgYellow).SprintFunc()
+	Blue    = color.New(color.FgBlue).SprintFunc()
+	Magenta = color.New(color.FgMagenta).SprintFunc()
+	Reset   = color.New(color.Reset).SprintFunc()
 )
 
 var listCmd = &cobra.Command{
@@ -27,28 +37,33 @@ var listCmd = &cobra.Command{
 			fmt.Println("Empty tasks list.")
 			return
 		}
+
 		for _, task := range tasks {
-			taskstatus := "[ ]"
+			taskStatus := "[ ]"
 			if task.Status == "todo" {
-				taskstatus = "[ ]"
-			} else if task.Status == "in-progress"{
-                taskstatus="[...]"
+				taskStatus = "[ ]"
+			} else if task.Status == "in-progress" {
+				taskStatus = "[...]"
 			} else {
-                taskstatus ="[✔]"
-			}
-            colorpr :=""
-			if task.Priority == "low"{
-				colorpr=data.Green
-			} else if task.Priority =="normal"{
-                colorpr=data.Blue
-			} else{
-                colorpr=data.Red
+				taskStatus = "[✔]"
 			}
 
+			var colorpr func(a ...interface{}) string
+			if task.Priority == "low" {
+				colorpr = Green
+			} else if task.Priority == "normal" {
+				colorpr = Blue
+			} else {
+				colorpr = Red
+			}
 
-
-
-			fmt.Printf("(%d)"+ data.Green +" %s"+ data.Reset +"  ["+colorpr+"%s"+data.Reset +"]"+data.Magenta+" %s"+data.Reset+"\n", task.ID, taskstatus,task.Priority, task.Description)
+			fmt.Printf("(%d) %s %s [%s] %s\n",
+				task.ID,
+				Green(taskStatus),
+				Reset(""),
+				colorpr(task.Priority),
+				Magenta(task.Description),
+			)
 		}
 	},
 }
